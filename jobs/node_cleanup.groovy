@@ -7,6 +7,11 @@ folder('sqre/infra') {
 }
 
 job('sqre/infra/jenkins-node-cleanup') {
+  parameters {
+    stringParam('CLEANUP_THRESHOLD', '50', 'minimum free space remaining on a node, in GiB, to trigger a cleanup')
+    booleanParam('FORCE_CLEANUP', false, 'Force cleanup of node workspace(s) regardless of free space remaining threshold. Note that the workspace of active jobs *will not* be cleaned up.')
+  }
+
   concurrentBuild(false)
 
   triggers {
@@ -27,6 +32,10 @@ job('sqre/infra/jenkins-node-cleanup') {
   steps {
     systemGroovyCommand(readFileFromWorkspace(
       'scripts/sqre/infra/jenkins_node_cleanup.groovy'
-    ))
+    )) {
+      binding('CLEANUP_THRESHOLD', 'CLEANUP_THRESHOLD')
+      binding('FORCE_CLEANUP', 'FORCE_CLEANUP')
+      sandbox(false)
+    }
   }
 }
